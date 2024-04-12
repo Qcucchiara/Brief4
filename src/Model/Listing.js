@@ -1,6 +1,6 @@
 class Listing {
   constructor(
-    user_id,
+    userId,
     title,
     description,
     images,
@@ -8,13 +8,13 @@ class Listing {
     maxParticipants,
     listParticipants
   ) {
-    this.user_id = user_id
+    this.user_id = userId
     this.title = title
     this.description = description
     this.images = images
-    this.dateEvent = dateEvent
-    this.maxParticipants = maxParticipants
-    this.listParticipants = listParticipants
+    this.date_event = dateEvent
+    this.max_participants = maxParticipants
+    this.list_participants = listParticipants
   }
 }
 

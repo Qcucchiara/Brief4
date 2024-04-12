@@ -1,12 +1,10 @@
 const express = require('express')
-const cors = require('cors')
-
-const { connect } = require('./Service/DbConnection')
-const userRoute = require('./Controller/Routes/......')
-const listingRoute = require('./Controller/Routes/.........')
-require('dotenv').config()
-
 const app = express()
+const cors = require('cors')
+const { connect } = require('./Service/DbConnection')
+const userRoute = require('./Controller/Routes/user')
+const listingRoute = require('./Controller/Routes/listing')
+require('dotenv').config()
 
 app.use(express.json())
 app.use(cors())
@@ -20,7 +18,8 @@ connect(process.env.DB_URL, (error) => {
   }
 })
 
-app.use('/users', userRoute)
-app.use('/events', listingRoute)
+app.use('/user', userRoute)
+app.use('/event', listingRoute)
 
+console.log('ça marche')
 app.listen(3232)

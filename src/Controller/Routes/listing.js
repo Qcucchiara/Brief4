@@ -14,7 +14,7 @@ router.post('/add', createListing)
 router.get('/get-all', getAllListing)
 router.get('/get-from-user', getListingsFromUser)
 router.get('/get-one', getOneListing)
-router.patch('/edit', editListing)
+router.patch('/edit/:userId/:listingId', editListing)
 router.delete('/delete', deleteListing)
 
 module.exports = router

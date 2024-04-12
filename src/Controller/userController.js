@@ -1,7 +1,8 @@
 const { User } = require('../Model/User')
 const client = require('../Service/DbConnection')
+const bcrypt = require('bcrypt')
 const { ObjectId } = require('bson')
-
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 const register = async (req, res) => {
@@ -9,23 +10,22 @@ const register = async (req, res) => {
     res.status(400).json({ error: 'Some fields are missing' })
     return
   }
-  const hashedPassword = await bcrypt.hash(req.body.password, 10)
-
+  const hashedPassword = await bcrypt.hash(req.body.password + '', 10)
   try {
     let user = await client
       .db('brief_4')
       .collection('user')
-      .findOne({ mail: req.body.mail })
+      .findOne({ email: req.body.email })
 
     if (user) {
-      if (req.body.mail == user.mail) {
-        res.status(400).json({ error: 'mail already used', status: 400 })
+      if (req.body.email == user.email) {
+        res.status(400).json({ error: 'email already used', status: 400 })
         return
       }
     }
     let newUser = new User(
       req.body.email,
-      req.body.password,
+      hashedPassword,
       req.body.name,
       'user',
       new Date(),
@@ -63,6 +63,11 @@ const login = async (req, res) => {
     if (!isValidPasswod) {
       res.status(401).json({ error: 'Wrong credentials' })
     } else {
+      const token = jwt.sign(user, process.env.SECRET_KEY)
+      // TODO
+      res.status(200).json({
+        jwt: token,
+      })
       // TODO
     }
   } catch (error) {
