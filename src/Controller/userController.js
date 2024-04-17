@@ -36,7 +36,18 @@ const register = async (req, res) => {
       .db('brief_4')
       .collection('user')
       .insertOne(newUser)
-    res.status(200).json(result)
+
+    const token = jwt.sign(
+      {
+        _id: result.insertedId,
+        name: newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+      },
+      process.env.SECRET_KEY
+    )
+
+    res.status(200).json({ jwt: token })
   } catch (error) {
     res.status(500).json(error.stack)
   }
@@ -63,12 +74,20 @@ const login = async (req, res) => {
     if (!isValidPasswod) {
       res.status(401).json({ error: 'Wrong credentials' })
     } else {
-      const token = jwt.sign(user, process.env.SECRET_KEY)
-      // TODO
+      const token = jwt.sign(
+        // user,
+        {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          // password: user.password,
+        },
+        process.env.SECRET_KEY
+      )
+
       res.status(200).json({
         jwt: token,
       })
-      // TODO
     }
   } catch (error) {
     res.status(500).json(error.stack)

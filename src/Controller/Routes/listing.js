@@ -6,6 +6,7 @@ const {
   getOneListing,
   getAllListing,
   getListingsFromUser,
+  addUserToListing,
 } = require('../listingController')
 
 const router = express.Router()
@@ -15,6 +16,7 @@ router.get('/get-all', getAllListing)
 router.get('/get-from-user', getListingsFromUser)
 router.get('/get-one', getOneListing)
 router.patch('/edit/:userId/:listingId', editListing)
+router.patch('/user-registration', addUserToListing)
 router.delete('/delete', deleteListing)
 
 module.exports = router
