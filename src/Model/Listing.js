@@ -3,19 +3,19 @@ class Listing {
     userId,
     title,
     description,
-    images,
+    image,
     dateEvent,
     maxParticipants,
     listParticipants
   ) {
-    this.user_id = userId
-    this.title = title
-    this.description = description
-    this.images = images
-    this.date_event = dateEvent
-    this.max_participants = maxParticipants
-    this.list_participants = listParticipants
+    this.user_id = userId;
+    this.title = title;
+    this.description = description;
+    this.image = image;
+    this.date_event = dateEvent;
+    this.max_participants = maxParticipants;
+    this.list_participants = listParticipants;
   }
 }
 
-module.exports = { Listing }
+module.exports = { Listing };

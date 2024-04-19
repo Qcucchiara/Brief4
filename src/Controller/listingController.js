@@ -19,23 +19,26 @@ const createListing = async (req, res) => {
   try {
     const token = await extractToken(req);
     jwt.verify(token, process.env.SECRET_KEY, async (err, authData) => {
+      let user = await client
+        .db('brief_4')
+        .collection('user')
+        .findOne({ _id: new ObjectId(authData._id) });
       if (err) {
         res.status(401).json({ err: 'Unauthorized' });
         return;
+      }
+      if (!user) {
+        res.status(401).json({ err: 'not logged in' });
+        return;
       } else {
-        let listing = await client
-          .db('brief_4')
-          .collection('user')
-          .findOne({ _id: new ObjectId(authData._id) });
-
         let newListing = new Listing(
-          listing._id,
+          user._id,
           req.body.title,
           req.body.description,
-          req.body.images,
+          req.body.image,
           req.body.date_event,
           req.body.max_participants,
-          req.body.list_participants
+          []
         );
         let result = await client
           .db('brief_4')
@@ -51,61 +54,63 @@ const createListing = async (req, res) => {
 
 const editListing = async (req, res) => {
   const token = await extractToken(req);
-  if (
-    // !req.body.userId ||
-    !req.body.title ||
-    !req.body.description ||
-    !req.body.date_event || //ne devrait pas pouvoir modifier la date ultérieurement
-    !req.body.max_participants
-  ) {
-    res.status(400).json({ error: 'Some fields are missing' });
-    return;
-  }
+  jwt.verify(token, process.env.SECRET_KEY, async (err, authData) => {
+    if (err) {
+      res.status(401).json({ err: 'Unauthorized' });
+      return;
+    } else {
+      // __________________V a modifier V________________________
+      if (
+        !req.body.title ||
+        !req.body.description ||
+        // !req.body.date_event || //ne devrait pas pouvoir modifier la date ultérieurement
+        !req.body.max_participants
+      ) {
+        res.status(400).json({ error: 'Some fields are missing' });
+        return;
+      }
 
-  let user = await client
-    .db('brief_4')
-    .collection('user')
-    .findOne({ _id: new ObjectId(req.params.userId) });
+      const listing = await client
+        .db('brief_4')
+        .collection('listing')
+        .findOne({ _id: new ObjectId(req.params.listingId) });
 
-  let listing = await client
-    .db('brief_4')
-    .collection('listing')
-    .findOne({ _id: new ObjectId(req.params.listingId) });
+      if (!listing) {
+        res.status(401).json({ error: 'Unauthorized 1' });
+        return;
+      }
+      console.log({ authData: authData });
+      if (listing.user_id + '' !== authData._id + '') {
+        // if (listing.user_id + '' !== authData._id + '' || user.role !== 'admin') {
 
-  if (!user || !listing) {
-    res.status(401).json({ error: 'Unauthorized 1' });
-    return;
-  }
+        res.status(401).json({ error: 'Unauthorized 2' });
+        return;
+      }
 
-  if (listing.user_id + '' !== user._id + '' || user.role !== 'admin') {
-    res.status(401).json({ error: 'Unauthorized 2' });
-    return;
-  }
-
-  try {
-    await client
-      .db('brief_4')
-      .collection('listing')
-      .updateOne(
-        { user_id: req.params.userId },
-        {
-          $set: {
-            title: req.body.title,
-            description: req.body.description,
-            images: req.body.images,
-            date_event: req.body.date_event,
-            max_participants: req.body.max_participants,
-          },
-        }
-      );
-    const newListing = await client
-      .db('brief_4')
-      .collection('listing')
-      .findOne({ user_id: req.params.userId });
-    res.status(200).json(newListing);
-  } catch (error) {
-    res.status(500).json(error.stack);
-  }
+      try {
+        await client
+          .db('brief_4')
+          .collection('listing')
+          .updateOne(
+            { _id: new ObjectId(req.params.listingId) },
+            {
+              $set: {
+                title: req.body.title,
+                description: req.body.description,
+                image: req.body.image,
+                date_event: req.body.date_event,
+                max_participants: req.body.max_participants,
+              },
+            }
+          );
+        console.log({ listing: listing });
+        res.status(200).json({ client: client, listing: listing });
+      } catch (error) {
+        res.status(500).json(error.stack);
+      }
+      // __________________^ a modifier ^________________________    }
+    }
+  });
 };
 
 const addUserToListing = async (req, res) => {
@@ -126,8 +131,14 @@ const addUserToListing = async (req, res) => {
           res.status(400).json({ err: 'already full' });
           return;
         }
+        console.log(authData);
+        console.log(listParticipants.includes(authData));
 
-        if (listParticipants.includes(authData)) {
+        const contain = listParticipants.some((element) => {
+          return JSON.stringify(authData) === JSON.stringify(element);
+        });
+
+        if (contain) {
           res.status(400).json({ err: 'already registered' });
           return;
         } else {
@@ -218,13 +229,16 @@ const getAllListing = async (req, res) => {
 };
 
 const getListingsFromUser = async (req, res) => {
-  // TODO
-  let listings = await client
-    .db('brief_4')
-    .collection('listing')
-    .find({ user_id: req.body.user_id })
-    .toArray();
-  res.status(200).json(listings);
+  const token = await extractToken(req);
+  jwt.verify(token, process.env.SECRET_KEY, async (err, authData) => {
+    let listings = await client
+      .db('brief_4')
+      .collection('listing')
+      .find({ user_id: new ObjectId(authData._id) })
+      .toArray();
+    console.log(authData._id);
+    res.status(200).json(listings);
+  });
 };
 
 module.exports = {
